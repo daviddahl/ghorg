@@ -141,7 +141,7 @@ def get_repo_with_most_open_issues(endpoint, num_repos):
         )
 
     stats_sorted = sorted(stats, reverse=True, key=itemgetter("open_issues"))
-    print(f"Repo with most open issues: {stats_sorted[0]['full_name']}: {stats_sorted[0]['open_issues']}")
-    print("License breakdown:")
+    print(f"\nRepo with most open issues: \n  {stats_sorted[0]['html_url']}\n    Open issues: {stats_sorted[0]['open_issues']}")
+    print("\nAll Repos License breakdown:")
     for k, v in licenses.items():
         print(f"{k}: {v}")
