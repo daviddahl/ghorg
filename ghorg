@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+"""
+Github Org Perusal
+Lookup an organization's summary on Github
+Usage:
+  ghorg --username=<GH_USERNAME> --token=<GH_API_Token> --org=<GH_Org_Name>
+  ghorg --username=<GH_USERNAME> --token=<GH_API_Token> --org=*
+Options:
+  -h                             Show this screen
+  -o --org=<GH_Org_Name>         Github Organization Name or * for all organizations
+  -u --username="<GH_USERNAME>"  Github username
+Example:
+  ghorg --token="1234567890ABCD..." --org=mozilla
+  ghorg --token="1234567890ABCD..." --org=*
+"""
+
+import os, sys
+from docopt import docopt
+
+if __name__ == '__main__':
+    arguments = docopt(__doc__, version='ghorg 0.0.1')
+    sys.path.append(os.getcwd())
+    sys.path.append(os.path.join(os.getcwd(), "app"))
+
+    from app import ghorg
+
+    ghorg(arguments)
