@@ -29,13 +29,18 @@ def ghorg(arguments):
     org = arguments["--org"][0]
 
     os.environ["GH_USERNAME"] = username
-    os.environ["GH_ACCESS_TOKEN"] = token
+    if isinstance(token, list):
+        os.environ["GH_ACCESS_TOKEN"] = token[0]
+    else:
+        os.environ["GH_ACCESS_TOKEN"] = token
 
-    request_org(org)
+    if org == "*":
+        request_all_orgs()
+    else:
+        request_org(org)
 
 
 def make_request(endpoint):
-
     response = requests.get(
         endpoint,
         auth=(os.environ["GH_USERNAME"], os.environ["GH_ACCESS_TOKEN"])
@@ -46,18 +51,47 @@ def make_request(endpoint):
     else:
         errors = json.loads(response.content)
         pprint(errors)
-        # import ipdb; ipdb.set_trace()
         raise RequestError(f"HTTP request failure")
 
 
 def request_all_orgs():
-    endpoint = f"{ALL_ORG_ENDPOINT}"
+    # TODO: check for the since_id in /tmp/__ghorg_paging
 
-    # paging is dome via the link header
+    f = open("/tmp/__ghorg_paging", "r")
+    lines = f.readlines()
 
-    # cache current page in /tmp/_current_page
+    try:
+        since_id = int(lines[0])
+    except:
+        since_id = None
 
-    # since query param is the id of te last org seen via API
+    if since_id is None:
+        endpoint = f"{ALL_ORG_ENDPOINT}"
+    else:
+        endpoint = f"{ALL_ORG_ENDPOINT}?since={since_id}"
+
+    print(endpoint)
+    request_orgs_page(endpoint)
+
+
+def save_id(since_id):
+
+    f = open("/tmp/__ghorg_paging", "w")
+    f.truncate(0)
+    f.writelines([str(since_id)])
+    f.close()
+
+
+def request_orgs_page(endpoint):
+    print(f"requesting orgs page: {endpoint}")
+    response = make_request(endpoint)
+
+    for org in response.json():
+        since_id = request_org(org["login"])
+        save_id(since_id)
+
+    endpoint = f"{ALL_ORG_ENDPOINT}?since={since_id}"
+    request_orgs_page(endpoint)
 
 
 def request_org(org):
@@ -70,13 +104,14 @@ def request_org(org):
     repo_endpoint = data["repos_url"]
 
     print("---")
-    print(data["login"])
+    print(f'Org: {data["repos_url"]}')
     print(f'Description: {data["description"]}')
     print(f'Public Repos: {data["public_repos"]}')
-    print("...")
-    print('Getting repo stats...')
+    print('\nGetting repo stats...')
 
     get_repo_with_most_open_issues(repo_endpoint, data["public_repos"])
+
+    return data["id"]
 
 
 def request_repos(endpoint, num_repos):
@@ -101,6 +136,7 @@ def request_repos(endpoint, num_repos):
         pages_fetched = pages_fetched + 1
         spinner.stop()
         spinner.succeed()
+
         if pages_fetched > pages:
             get_another_page = False
 
@@ -140,8 +176,17 @@ def get_repo_with_most_open_issues(endpoint, num_repos):
             }
         )
 
-    stats_sorted = sorted(stats, reverse=True, key=itemgetter("open_issues"))
-    print(f"\nRepo with most open issues: \n  {stats_sorted[0]['html_url']}\n    Open issues: {stats_sorted[0]['open_issues']}")
+    stats_sorted = sorted(
+        stats,
+        reverse=True,
+        key=itemgetter("open_issues")
+    )
+    try:
+        print(f"\nRepo with most open issues: \n  {stats_sorted[0]['html_url']}\n    Open issues: {stats_sorted[0]['open_issues']}")
+    except IndexError as ex:
+        print("Could not determine repo with most open issues! (An error occurred)")
+        # NOTE: since_id: 1849 caused this
     print("\nAll Repos License breakdown:")
+
     for k, v in licenses.items():
         print(f"{k}: {v}")

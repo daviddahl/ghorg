@@ -5,12 +5,14 @@ Github Org Perusal
 Lookup an organization's summary on Github
 Usage:
   ghorg --username=<GH_USERNAME> --token=<GH_API_Token> --org=<GH_Org_Name>
+  ghorg --username=<GH_USERNAME> --token=<GH_API_Token> --org=*
 Options:
   -h                             Show this screen
-  -o --org=<GH_Org_Name>         Github Organization Name
+  -o --org=<GH_Org_Name>         Github Organization Name or * for all orgs
   -u --username="<GH_USERNAME>"  Github username
 Example:
   ghorg --username=software_nerd --token="1234567890ABCD" --org=mozilla
+  ghorg --username=software_nerd --token="1234567890ABCD..." --org=*
 """
 
 import os, sys
