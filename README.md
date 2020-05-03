@@ -2,7 +2,7 @@
 
 ## Get Github org summaries
 
-This is an experiemt in getting to know the Github API
+This is an experiment in getting to know the Github API
 
 ### Install
 
