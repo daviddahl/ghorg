@@ -3,6 +3,7 @@ import requests
 import os
 import math
 import time
+import json
 from operator import itemgetter
 
 from halo import Halo
@@ -24,7 +25,7 @@ def ghorg(arguments):
     entrypoint for Github organization queries
     """
     username = arguments["--username"][0]
-    token = arguments["--token"][0]
+    token = arguments["--token"]
     org = arguments["--org"][0]
 
     os.environ["GH_USERNAME"] = username
@@ -43,7 +44,10 @@ def make_request(endpoint):
     if response.status_code == requests.codes.ok:
         return response
     else:
-        raise RequestError(f"HTTP response failure: {response}")
+        errors = json.loads(response.content)
+        pprint(errors)
+        # import ipdb; ipdb.set_trace()
+        raise RequestError(f"HTTP request failure")
 
 
 def request_all_orgs():
