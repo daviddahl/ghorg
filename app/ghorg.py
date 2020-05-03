@@ -1,6 +1,5 @@
 from pprint import pprint
 import requests
-import json
 import os
 import math
 import time
@@ -44,8 +43,6 @@ def make_request(endpoint):
     if response.status_code == requests.codes.ok:
         return response
     else:
-        # import ipdb; ipdb.set_trace()
-        pprint(response)
         raise RequestError(f"HTTP response failure: {response}")
 
 
@@ -63,7 +60,7 @@ def request_org(org):
     endpoint = f"{ORG_ENDPOINT}/{org}"
     spinner.start()
     response = make_request(endpoint)
-    data = json.loads(response.text)
+    data = response.json()
     spinner.stop()
 
     repo_endpoint = data["repos_url"]
@@ -95,7 +92,7 @@ def request_repos(endpoint, num_repos):
     while get_another_page:
         spinner.start()
         response = make_request(f"{endpoint}?page={pages_fetched}&per_page=100")
-        repos.extend(json.loads(response.text))
+        repos.extend(response.json())
         time.sleep(1)
         pages_fetched = pages_fetched + 1
         spinner.stop()
@@ -141,6 +138,6 @@ def get_repo_with_most_open_issues(endpoint, num_repos):
 
     stats_sorted = sorted(stats, reverse=True, key=itemgetter("open_issues"))
     print(f"Repo with most open issues: {stats_sorted[0]['full_name']}: {stats_sorted[0]['open_issues']}")
-    print("Licenses breakdown:")
+    print("License breakdown:")
     for k, v in licenses.items():
         print(f"{k}: {v}")
