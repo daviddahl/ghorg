@@ -12,6 +12,8 @@ This is an experiment in getting to know the Github API
 
 #### Linux / macOS
 
+`git clone git@github.com:daviddahl/ghorg.git`
+
 Run the install script:
 
 `./install.sh`
